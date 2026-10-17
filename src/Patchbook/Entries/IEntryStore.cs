@@ -3,6 +3,7 @@ namespace Patchbook.Entries;
 public enum EntrySort { RecentlyUpdated, OldestFirst, Title }
 
 public sealed record EntryQuery(string Search = "", string Tag = "", EntrySort Sort = EntrySort.RecentlyUpdated);
+public sealed record ImportResult(int Added, int Skipped);
 
 /// <summary>The UI depends on this contract so persistence can be added later.</summary>
 public interface IEntryStore
@@ -13,4 +14,5 @@ public interface IEntryStore
     Task<Entry?> UpdateAsync(Guid id, EntryDraft draft);
     Task<bool> DeleteAsync(Guid id);
     Task<Entry?> SetPinnedAsync(Guid id, bool pinned);
+    Task<ImportResult> ImportAsync(IReadOnlyList<Entry> entries);
 }

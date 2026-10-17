@@ -98,6 +98,31 @@ public sealed class InMemoryEntryStore(TimeProvider clock) : IEntryStore
     private static void Validate(EntryDraft draft) =>
         Validator.ValidateObject(draft, new ValidationContext(draft), validateAllProperties: true);
 
+    public Task<ImportResult> ImportAsync(IReadOnlyList<Entry> entries)
+    {
+        // Validate and normalize the entire batch before changing the notebook.
+        var batch = new List<Entry>();
+        var ids = new HashSet<Guid>();
+        foreach (var entry in entries)
+        {
+            if (entry is null || entry.Id == Guid.Empty || !ids.Add(entry.Id) ||
+                entry.CreatedAt == default || entry.UpdatedAt < entry.CreatedAt ||
+                entry.Tags.IsDefault || entry.Tags.Any(string.IsNullOrWhiteSpace) ||
+                new[] { entry.Title, entry.Error, entry.Cause, entry.Fix, entry.Code, entry.Language, entry.ReferenceUrl }.Any(value => value is null))
+            {
+                throw new ValidationException("The backup contains invalid entry data or repeated IDs.");
+            }
+            var draft = EntryDraft.From(entry);
+            Validate(draft);
+            batch.Add(Snapshot(entry.Id, draft, entry.CreatedAt, entry.UpdatedAt) with { IsPinned = entry.IsPinned });
+        }
+        lock (_gate)
+        {
+            var added = batch.Count(entry => _entries.TryAdd(entry.Id, entry));
+            return Task.FromResult(new ImportResult(added, batch.Count - added));
+        }
+    }
+
     private static Entry Snapshot(Guid id, EntryDraft draft, DateTimeOffset created, DateTimeOffset updated) =>
         new(id, draft.Title.Trim(), draft.Error.Trim(), draft.Cause.Trim(), draft.Fix.Trim(),
             draft.Code, draft.Language.Trim(), draft.NormalizedTags().ToImmutableArray(),

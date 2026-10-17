@@ -8,6 +8,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<IEntryStore, InMemoryEntryStore>();
+builder.Services.AddScoped<NotebookBackupService>();
 
 var app = builder.Build();
 
