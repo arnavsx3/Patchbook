@@ -7,14 +7,20 @@ function stop(code = 0) {
   if (stopping) return;
   stopping = true;
   process.exitCode = code;
-  for (const child of children) {
-    try {
-      if (process.platform === "win32") child.kill("SIGTERM");
-      else process.kill(-child.pid, "SIGTERM");
-    } catch (error) {
-      if (error.code !== "ESRCH") console.error(error.message);
+  function signalChildren(signal) {
+    for (const child of children) {
+      if (!child.pid) continue;
+      try {
+        if (process.platform === "win32") child.kill(signal);
+        else process.kill(-child.pid, signal);
+      } catch (error) {
+        if (error.code !== "ESRCH") console.error(error.message);
+      }
     }
   }
+  // dotnet watch handles Ctrl+C as shutdown; SIGTERM can leave it watching.
+  signalChildren("SIGINT");
+  setTimeout(() => signalChildren("SIGKILL"), 2000).unref();
 }
 
 function start(command, args) {
