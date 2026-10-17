@@ -42,4 +42,5 @@ process.on("SIGINT", () => stop());
 process.on("SIGTERM", () => stop());
 
 start(process.execPath, ["scripts/styles.mjs", "--watch"]);
+start(process.execPath, ["scripts/client.mjs", "--watch"]);
 start("dotnet", ["watch", "--project", "src/Patchbook", "--non-interactive"]);

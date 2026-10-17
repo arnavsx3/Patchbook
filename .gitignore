@@ -490,3 +490,6 @@ test-results/
 *.db
 *.db-shm
 *.db-wal
+
+# Bundled browser code
+src/Patchbook/wwwroot/app.js

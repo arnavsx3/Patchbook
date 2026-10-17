@@ -7,9 +7,9 @@
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
   </PropertyGroup>
 
-  <Target Name="BuildTailwind" BeforeTargets="PrepareForBuild" Condition="'$(DesignTimeBuild)' != 'true'">
+  <Target Name="BuildClientAssets" BeforeTargets="PrepareForBuild" Condition="'$(DesignTimeBuild)' != 'true'">
     <Error Condition="!Exists('$(MSBuildProjectDirectory)/../../node_modules/@tailwindcss/postcss')" Text="Run npm ci from the repository root before building Patchbook." />
-    <Exec Command="npm run css" WorkingDirectory="$(MSBuildProjectDirectory)/../.." />
+    <Exec Command="npm run assets" WorkingDirectory="$(MSBuildProjectDirectory)/../.." />
   </Target>
 
 </Project>

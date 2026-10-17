@@ -14,12 +14,18 @@
     "test": "dotnet test",
     "check": "dotnet restore --locked-mode && dotnet format --verify-no-changes --no-restore && dotnet build --configuration Release --no-restore && dotnet test --configuration Release --no-build && npm audit --audit-level=high",
     "test:e2e": "npm run publish && playwright test",
-    "publish": "dotnet publish src/Patchbook --configuration Release --output artifacts/publish"
+    "publish": "dotnet publish src/Patchbook --configuration Release --output artifacts/publish",
+    "client": "node scripts/client.mjs",
+    "assets": "npm run css && npm run client"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",
     "@tailwindcss/postcss": "4.3.3",
+    "esbuild": "0.28.2",
     "postcss": "8.5.30",
     "tailwindcss": "4.3.3"
+  },
+  "dependencies": {
+    "highlight.js": "11.12.0"
   }
 }

@@ -3,7 +3,7 @@
 setup:
 	npm ci
 	dotnet restore
-	npm run css
+	npm run assets
 
 dev:
 	npm run dev
