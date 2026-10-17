@@ -13,13 +13,14 @@ test.beforeEach(async ({ page }) => {
 });
 test.afterEach(() => expect(browserErrors).toEqual([]));
 
-async function createEntry(page, title, { tags = "testing", code = "dotnet test" } = {}) {
+async function createEntry(page, title, { tags = "testing", code = "dotnet test", language = "text" } = {}) {
   await page.goto("/entries/new");
   await page.getByLabel("Title", { exact: false }).fill(title);
   await page.getByLabel("The error or problem", { exact: false }).fill("An unexpected error");
   await page.getByLabel("What fixed it", { exact: false }).fill("A repeatable solution");
   await page.getByLabel("Tags", { exact: false }).fill(tags);
   await page.getByLabel("Code snippet", { exact: false }).fill(code);
+  await page.getByLabel("Code language", { exact: true }).selectOption(language);
   await page.getByRole("button", { name: "Save entry", exact: true }).click();
   await expect(page.getByRole("heading", { name: title, exact: true })).toBeVisible();
 }
@@ -191,4 +192,28 @@ test("invalid and oversized backup files keep the notebook intact", async ({ pag
   await page.getByLabel("Import backup", { exact: true }).setInputFiles({ name: "large.json", mimeType: "application/json", buffer: Buffer.alloc(2 * 1024 * 1024 + 1) });
   await expect(page.getByRole("status")).toContainText("2 MB or smaller");
   await expect(page.locator("article")).toHaveCount(count);
+});
+
+
+test("highlights C# with line numbers while copying only the original code", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  const code = 'var answer = 42;\nConsole.WriteLine("hello");';
+  await createEntry(page, "Highlighted C# fix", { code, language: "csharp" });
+  await expect(page.locator("pre code .hljs-keyword").first()).toBeVisible();
+  await expect(page.locator("pre[aria-hidden=true]")).toHaveText("1\n2");
+  await expect(page.locator("pre code")).toHaveJSProperty("textContent", code);
+  await expect.poll(() => page.locator("pre code").evaluate(element =>
+    getComputedStyle(element.querySelector(".hljs-keyword")).color !== getComputedStyle(element).color)).toBe(true);
+  await page.getByRole("button", { name: "Copy code", exact: true }).click();
+  await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(code);
+});
+
+test("HTML highlighting keeps markup inert and fits on mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  const code = '<img src=x onerror=alert(1)>\n<script>alert("hello")</script>';
+  await createEntry(page, "Highlighted HTML fix", { code, language: "html" });
+  await expect(page.locator("pre code .hljs-tag").first()).toBeVisible();
+  await expect(page.locator("article img, article script")).toHaveCount(0);
+  await expect(page.locator("pre code")).toHaveJSProperty("textContent", code);
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

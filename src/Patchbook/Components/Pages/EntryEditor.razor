@@ -43,17 +43,10 @@ else if (_context is not null)
                     <div class="mb-2 flex flex-wrap items-center justify-between gap-3">
                         <label for="code" class="text-sm font-semibold">Code snippet <span class="font-normal text-muted">· optional</span></label>
                         <InputSelect aria-label="Code language" @bind-Value="_draft.Language" class="rounded-lg border border-line bg-paper px-3 py-2 text-xs">
-                            <option value="text">Plain text</option>
-                            <option value="csharp">C#</option>
-                            <option value="bash">Shell</option>
-                            <option value="javascript">JavaScript</option>
-                            <option value="typescript">TypeScript</option>
-                            <option value="python">Python</option>
-                            <option value="elixir">Elixir</option>
-                            <option value="sql">SQL</option>
-                            <option value="json">JSON</option>
-                            <option value="html">HTML</option>
-                            <option value="css">CSS</option>
+                            @foreach (var language in CodeLanguages.All)
+                            {
+                                <option value="@language.Id">@language.Label</option>
+                            }
                         </InputSelect>
                     </div>
                     <InputTextArea id="code" @bind-Value="_draft.Code" maxlength="12000" rows="6" spellcheck="false" placeholder="The command or code that saved the day." class="w-full rounded-xl border border-[#3c3a50] bg-[#252435] px-4 py-3 font-mono text-sm leading-7 text-violet-100 placeholder:text-[#aaa3be] [&.invalid]:border-red-400" />

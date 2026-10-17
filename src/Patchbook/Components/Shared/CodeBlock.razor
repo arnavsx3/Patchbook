@@ -1,10 +1,13 @@
 <div class="overflow-hidden rounded-xl border border-[#343348] bg-[#252435]">
-    <div class="flex items-center justify-between border-b border-[#3c3a50] px-4 py-3">
-        <span class="font-mono text-xs text-violet-200">@Language</span>
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#3c3a50] px-4 py-3">
+        <span class="font-mono text-xs text-violet-200">@CodeLanguages.LabelFor(Language) <span class="ml-2 text-[#aaa3be]">· @LineCount @(LineCount == 1 ? "line" : "lines")</span></span>
         <button type="button" @onclick="Copy" class="flex items-center gap-2 rounded-md px-2 py-1 text-xs text-violet-100 hover:bg-white/10" aria-label="Copy code">
             <Icon Name="@(_copied ? "check" : "copy")" Class="size-3.5" /> @(_copied ? "Copied!" : "Copy code")
         </button>
     </div>
-    <pre class="overflow-x-auto p-5 font-mono text-sm leading-7 text-[#e1deef]" tabindex="0"><code>@Code</code></pre>
+    <div class="grid max-h-[28rem] grid-cols-[auto_minmax(0,1fr)] overflow-y-auto">
+        <pre aria-hidden="true" class="select-none border-r border-[#3c3a50] px-3 py-5 text-right font-mono text-sm leading-7 text-[#aaa3be]">@LineNumbers</pre>
+        <pre class="overflow-x-auto px-4 py-5 font-mono text-sm leading-7 text-[#e1deef]" tabindex="0" aria-label="@($"Code snippet in {CodeLanguages.LabelFor(Language)}")"><code class="[&_.hljs-keyword]:text-violet-300 [&_.hljs-string]:text-emerald-300 [&_.hljs-number]:text-amber-200 [&_.hljs-comment]:text-slate-400 [&_.hljs-title]:text-sky-300 [&_.hljs-attr]:text-rose-300 [&_.hljs-tag]:text-sky-300 [&_.hljs-built_in]:text-amber-200 [&_.hljs-literal]:text-amber-200">@RenderedCode</code></pre>
+    </div>
 </div>
 <p role="status" class="mt-2 text-xs text-muted">@_message</p>
