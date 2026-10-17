@@ -7,11 +7,21 @@ function stop(code = 0) {
   if (stopping) return;
   stopping = true;
   process.exitCode = code;
-  for (const child of children) child.kill("SIGTERM");
+  for (const child of children) {
+    try {
+      if (process.platform === "win32") child.kill("SIGTERM");
+      else process.kill(-child.pid, "SIGTERM");
+    } catch (error) {
+      if (error.code !== "ESRCH") console.error(error.message);
+    }
+  }
 }
 
 function start(command, args) {
-  const child = spawn(command, args, { stdio: "inherit" });
+  const child = spawn(command, args, {
+    stdio: "inherit",
+    detached: process.platform !== "win32",
+  });
   children.push(child);
   child.on("error", (error) => {
     console.error(error.message);
@@ -25,5 +35,5 @@ function start(command, args) {
 process.on("SIGINT", () => stop());
 process.on("SIGTERM", () => stop());
 
-start("npm", ["run", "css:watch"]);
+start(process.execPath, ["scripts/styles.mjs", "--watch"]);
 start("dotnet", ["watch", "--project", "src/Patchbook", "--non-interactive"]);

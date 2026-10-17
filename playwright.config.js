@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { fileURLToPath } from "node:url";
 
 export default defineConfig({
   testDir: "./tests/browser",
@@ -12,10 +13,11 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   webServer: {
-    command: "dotnet run --project src/Patchbook --configuration Release --no-build --no-launch-profile --urls http://127.0.0.1:5081",
+    command: "dotnet Patchbook.dll --urls http://127.0.0.1:5081",
+    cwd: fileURLToPath(new URL("./artifacts/publish", import.meta.url)),
     url: "http://127.0.0.1:5081/health",
     reuseExistingServer: false,
     timeout: 60000,
-    env: { ASPNETCORE_ENVIRONMENT: "Development" },
+    env: { ASPNETCORE_ENVIRONMENT: "Production" },
   },
 });

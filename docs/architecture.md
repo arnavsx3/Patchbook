@@ -2,6 +2,8 @@
 
 Patchbook is a single ASP.NET Core application with Blazor Interactive Server components. C# handles both application logic and UI events; the browser receives rendered updates over Blazor's built-in connection.
 
+Routes use Interactive Server without prerendering: the interactive notebook appears once the connection is ready. No separate HTTP API is needed for entry operations; the components call the store service directly.
+
 ## Entry flow
 
 1. A Razor page collects an `EntryDraft`.
@@ -27,3 +29,9 @@ The development profile listens on localhost. There are no accounts or separate 
 ## Build
 
 The web project's build target generates Tailwind CSS through PostCSS before static assets are collected. Node packages are development tools, not part of the running .NET application. Generated CSS, build outputs, and dependencies are ignored by Git; lockfiles are committed.
+
+Browser tests run against the published application in Production mode, on their own port and with a fresh in-memory store. They check the real UI and packaged assets together.
+
+## Suggested reading order
+
+Start with `Program.cs` for dependency injection and app startup. Read `Entry.cs` and `EntryDraft.cs` for records and validation, then `IEntryStore.cs` and `InMemoryEntryStore.cs` for the storage contract and LINQ queries. Read the store tests alongside that implementation. Finish with the three pages in `Components/Pages` and the shared components they use.
