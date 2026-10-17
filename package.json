@@ -1,0 +1,22 @@
+{
+  "name": "patchbook",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "css": "node scripts/styles.mjs",
+    "css:watch": "node scripts/styles.mjs --watch",
+    "dev": "node scripts/dev.mjs",
+    "build": "dotnet build --configuration Release",
+    "test": "dotnet test",
+    "check": "dotnet format --verify-no-changes && dotnet build --configuration Release && dotnet test --configuration Release --no-build && npm audit --audit-level=high"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "postcss": "8.5.30",
+    "tailwindcss": "4.3.3"
+  }
+}

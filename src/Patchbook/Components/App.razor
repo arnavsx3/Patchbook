@@ -1,0 +1,23 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <meta name="description" content="Your personal notebook for programming errors, fixes, and lessons worth keeping." />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <ResourcePreloader />
+    <link rel="stylesheet" href="@Assets["app.css"]" />
+    <link rel="stylesheet" href="@Assets["Patchbook.styles.css"]" />
+    <ImportMap />
+    <HeadOutlet @rendermode="InteractiveServer" />
+</head>
+
+<body class="bg-paper font-sans text-ink antialiased selection:bg-violet-200">
+    <Routes @rendermode="InteractiveServer" />
+    <ReconnectModal />
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
+</body>
+
+</html>

@@ -19,6 +19,18 @@ Save the error, what caused it, and the solution so you can find your own answer
 - Entity Framework Core and SQLite for storage
 - xUnit for tests
 
+## Run locally
+
+Requires the .NET 10 SDK, Node.js 22 or newer, and npm.
+
+```bash
+make setup
+make dev
+```
+
+Run these commands from the repository root, then open http://localhost:5080.
+`make build` builds the application and its Tailwind styles.
+
 ## Status
 
-Initial repository setup. Application development has not started yet.
+The Blazor application and Tailwind build pipeline are in place. Notebook features are being built next, using server-side in-memory storage. Database integration is deferred.
