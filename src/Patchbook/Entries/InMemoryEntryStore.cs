@@ -23,10 +23,11 @@ public sealed class InMemoryEntryStore(TimeProvider clock) : IEntryStore
 
         var search = query.Search.Trim();
         var tag = query.Tag.Trim();
+        var language = query.Language.Trim();
         var entries = snapshot.Where(entry =>
+            (language.Length == 0 || entry.Language.Equals(language, StringComparison.OrdinalIgnoreCase)) &&
             (tag.Length == 0 || entry.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase)) &&
-            (search.Length == 0 || SearchableFields(entry)
-                .Any(field => field.Contains(search, StringComparison.OrdinalIgnoreCase))));
+            EntrySearch.Matches(entry, search));
 
         var ordered = query.Sort switch
         {
@@ -128,6 +129,4 @@ public sealed class InMemoryEntryStore(TimeProvider clock) : IEntryStore
             draft.Code, draft.Language.Trim(), draft.NormalizedTags().ToImmutableArray(),
             draft.ReferenceUrl.Trim(), created, updated);
 
-    private static IEnumerable<string> SearchableFields(Entry entry) =>
-        [entry.Title, entry.Error, entry.Cause, entry.Fix, entry.Code, entry.Language, entry.ReferenceUrl, .. entry.Tags];
 }

@@ -2,7 +2,7 @@ namespace Patchbook.Entries;
 
 public enum EntrySort { RecentlyUpdated, OldestFirst, Title }
 
-public sealed record EntryQuery(string Search = "", string Tag = "", EntrySort Sort = EntrySort.RecentlyUpdated);
+public sealed record EntryQuery(string Search = "", string Tag = "", EntrySort Sort = EntrySort.RecentlyUpdated, string Language = "");
 public sealed record ImportResult(int Added, int Skipped);
 
 /// <summary>The UI depends on this contract so persistence can be added later.</summary>
