@@ -31,6 +31,7 @@ Save the error, what caused it, and the solution so you can find your own answer
 ## Run locally
 
 Requires the .NET 10 SDK, Node.js 22 or newer, npm, and Make.
+The SDK is pinned to `10.0.112` in `global.json` so local builds and CI use the same Blazor asset dependencies. Update the SDK pin and NuGet lockfiles together.
 
 ```bash
 cd ~/Projects/Patchbook
