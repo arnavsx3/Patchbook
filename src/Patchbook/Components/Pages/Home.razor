@@ -20,12 +20,19 @@
     <span class="ml-auto hidden items-center gap-2 sm:flex"><Icon Name="book" Class="size-4 text-brand" /> A little wiser with every entry</span>
 </div>
 <BackupTools OnImported="OnImported" />
-<div class="flex flex-col gap-3 sm:flex-row">
-    <div class="relative flex-1">
+<div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+    <div class="relative min-w-0 flex-1 basis-full xl:basis-0">
         <span class="pointer-events-none absolute left-4 top-3.5 text-muted"><Icon Name="search" Class="size-4" /></span>
         <input aria-label="Search entries" @bind="_search" @bind:event="oninput" @bind:after="Load" placeholder="Search errors, fixes, snippets…" type="search" maxlength="250" class="w-full rounded-xl border border-line bg-white py-3 pl-11 pr-4 text-sm placeholder:text-muted" />
     </div>
-    <select aria-label="Sort entries" @bind="_sort" @bind:after="Load" class="rounded-xl border border-line bg-white px-4 py-3 text-sm text-muted">
+    <select aria-label="Filter by language" @bind="_language" @bind:after="Load" class="min-w-0 flex-1 rounded-xl border border-line bg-white px-4 py-3 text-sm text-muted xl:flex-none">
+        <option value="">All languages</option>
+        @foreach (var language in Languages)
+        {
+            <option value="@language">@CodeLanguages.LabelFor(language)</option>
+        }
+    </select>
+    <select aria-label="Sort entries" @bind="_sort" @bind:after="Load" class="min-w-0 flex-1 rounded-xl border border-line bg-white px-4 py-3 text-sm text-muted xl:flex-none">
         <option value="@EntrySort.RecentlyUpdated">Recently updated</option>
         <option value="@EntrySort.OldestFirst">Oldest first</option>
         <option value="@EntrySort.Title">Title A–Z</option>
@@ -39,14 +46,14 @@
         {
             <button @onclick="() => SetTag(tag)" aria-pressed="@(_tag == tag ? "true" : "false")" class="@TagClass(_tag == tag)"><span class="opacity-60">#</span>@tag</button>
         }
-        @if (_search.Length > 0 || _tag.Length > 0)
+        @if (HasFilters)
         {
             <button @onclick="ClearFilters" class="ml-1 rounded-lg px-2 py-1 text-xs text-muted underline underline-offset-4">Clear filters</button>
         }
     </div>
 }
 <div aria-live="polite" class="mb-4 mt-8 flex items-center gap-2 text-xs font-medium text-muted">
-    @(_search.Length > 0 || _tag.Length > 0 ? "SEARCH RESULTS" : "YOUR COLLECTION")
+    @(HasFilters ? "SEARCH RESULTS" : "YOUR COLLECTION")
     <span class="rounded-md bg-[#eeecf3] px-2 py-0.5 text-[10px]">@_entries.Count</span>
 </div>
 @if (_allEntries.Count == 0)
@@ -73,7 +80,7 @@ else
     <div class="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
         @foreach (var entry in _entries)
         {
-            <EntryCard @key="entry.Id" Item="entry" OnPinChanged="OnPinChanged" />
+            <EntryCard @key="entry.Id" Item="entry" OnPinChanged="OnPinChanged" SearchQuery="@_search" />
         }
     </div>
 }

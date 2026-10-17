@@ -217,3 +217,34 @@ test("HTML highlighting keeps markup inert and fits on mobile", async ({ page })
   await expect(page.locator("pre code")).toHaveJSProperty("textContent", code);
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
+
+
+test("combines language, tag, and search filters and shows solution matches", async ({ page }) => {
+  await createEntry(page, "Search preview fix", { tags: "searchtest", language: "csharp" });
+  await page.getByRole("link", { name: "Edit entry" }).click();
+  await page.getByLabel("What fixed it", { exact: false }).fill("a".repeat(220) + "needle42" + "z".repeat(220));
+  await page.getByRole("button", { name: "Save entry", exact: true }).click();
+  await page.getByRole("link", { name: "Back to notebook" }).click();
+  await page.getByLabel("Filter by language").selectOption("csharp");
+  await page.getByRole("button", { name: "#searchtest", exact: true }).click();
+  await page.getByLabel("Search entries").fill("NEEDLE42");
+  await expect(page.locator("article")).toHaveCount(1);
+  await expect(page.locator("article mark")).toHaveText("needle42");
+  await expect(page.locator("article p")).toContainText("Fix:");
+  await page.getByLabel("Filter by language").selectOption("bash");
+  await expect(page.getByRole("heading", { name: "No fixes found." })).toBeVisible();
+  await page.getByRole("button", { name: "Clear filters", exact: true }).first().click();
+  await expect(page.getByLabel("Filter by language")).toHaveValue("");
+  await expect(page.getByLabel("Search entries")).toHaveValue("");
+  await expect(page.getByRole("button", { name: "All tags", exact: true })).toHaveAttribute("aria-pressed", "true");
+});
+
+test("highlights literal HTML search text safely and fits filter controls on mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto("/");
+  await page.getByLabel("Search entries").fill("<img");
+  await expect(page.locator("article")).toHaveCount(2);
+  await expect(page.locator("article mark").first()).toHaveText("<img");
+  await expect(page.locator("article img")).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});

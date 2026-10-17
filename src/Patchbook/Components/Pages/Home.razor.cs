@@ -13,8 +13,12 @@ public partial class Home
     private IReadOnlyList<Entry> _entries = [];
     private string _search = "";
     private string _tag = "";
+    private string _language = "";
     private EntrySort _sort;
     private bool _loadingExamples;
+    private bool HasFilters => _search.Length > 0 || _tag.Length > 0 || _language.Length > 0;
+    private IEnumerable<string> Languages => _allEntries.Select(entry => entry.Language)
+        .Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(CodeLanguages.LabelFor, StringComparer.OrdinalIgnoreCase);
     private IEnumerable<string> Tags => _allEntries.SelectMany(entry => entry.Tags).Distinct().Order();
 
     protected override Task OnInitializedAsync() => Load();
@@ -22,14 +26,14 @@ public partial class Home
     private async Task Load()
     {
         _allEntries = await Store.ListAsync();
-        _entries = await Store.ListAsync(new EntryQuery(_search, _tag, _sort));
+        _entries = await Store.ListAsync(new EntryQuery(_search, _tag, _sort, _language));
     }
 
     private async Task SetTag(string tag) { _tag = tag; await Load(); }
     private Task ClearTag() => SetTag("");
     private Task OnPinChanged(Entry _) => Load();
     private Task OnImported(ImportResult _) => Load();
-    private async Task ClearFilters() { _search = ""; _tag = ""; await Load(); }
+    private async Task ClearFilters() { _search = ""; _tag = ""; _language = ""; await Load(); }
 
     private static string TagClass(bool selected) =>
         "max-w-full break-words rounded-lg border px-3 py-1.5 font-mono text-[11px] transition " +

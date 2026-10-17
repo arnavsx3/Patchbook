@@ -1,0 +1,11 @@
+@foreach (var segment in _segments)
+{
+    @if (segment.IsMatch)
+    {
+        <mark class="rounded-sm bg-amber-100 text-ink">@segment.Text</mark>
+    }
+    else
+    {
+        @segment.Text
+    }
+}
