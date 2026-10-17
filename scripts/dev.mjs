@@ -43,4 +43,5 @@ process.on("SIGTERM", () => stop());
 
 start(process.execPath, ["scripts/styles.mjs", "--watch"]);
 start(process.execPath, ["scripts/client.mjs", "--watch"]);
-start("dotnet", ["watch", "--project", "src/Patchbook", "--non-interactive"]);
+const runArgs = process.env.ASPNETCORE_URLS ? ["--urls", process.env.ASPNETCORE_URLS] : [];
+start("dotnet", ["watch", "--project", "src/Patchbook", "--non-interactive", "run", ...runArgs]);
