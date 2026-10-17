@@ -12,4 +12,5 @@ public interface IEntryStore
     Task<Entry> CreateAsync(EntryDraft draft);
     Task<Entry?> UpdateAsync(Guid id, EntryDraft draft);
     Task<bool> DeleteAsync(Guid id);
+    Task<Entry?> SetPinnedAsync(Guid id, bool pinned);
 }

@@ -35,7 +35,9 @@ public sealed class InMemoryEntryStore(TimeProvider clock) : IEntryStore
             _ => entries.OrderByDescending(entry => entry.UpdatedAt)
         };
 
-        return Task.FromResult<IReadOnlyList<Entry>>(ordered.ThenBy(entry => entry.Id).ToArray());
+        // LINQ ordering is stable, so pins retain the requested order within each group.
+        return Task.FromResult<IReadOnlyList<Entry>>(ordered.ThenBy(entry => entry.Id)
+            .OrderByDescending(entry => entry.IsPinned).ToArray());
     }
 
     public Task<Entry?> GetAsync(Guid id)
@@ -68,7 +70,7 @@ public sealed class InMemoryEntryStore(TimeProvider clock) : IEntryStore
                 return Task.FromResult<Entry?>(null);
             }
 
-            var entry = Snapshot(id, draft, existing.CreatedAt, clock.GetUtcNow());
+            var entry = Snapshot(id, draft, existing.CreatedAt, clock.GetUtcNow()) with { IsPinned = existing.IsPinned };
             _entries[id] = entry;
             return Task.FromResult<Entry?>(entry);
         }
@@ -79,6 +81,17 @@ public sealed class InMemoryEntryStore(TimeProvider clock) : IEntryStore
         lock (_gate)
         {
             return Task.FromResult(_entries.Remove(id));
+        }
+    }
+
+    public Task<Entry?> SetPinnedAsync(Guid id, bool pinned)
+    {
+        lock (_gate)
+        {
+            if (!_entries.TryGetValue(id, out var entry)) return Task.FromResult<Entry?>(null);
+            var updated = entry with { IsPinned = pinned };
+            _entries[id] = updated;
+            return Task.FromResult<Entry?>(updated);
         }
     }
 

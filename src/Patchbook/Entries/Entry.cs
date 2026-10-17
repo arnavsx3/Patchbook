@@ -14,4 +14,5 @@ public sealed record Entry(
     ImmutableArray<string> Tags,
     string ReferenceUrl,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt,
+    bool IsPinned = false);
