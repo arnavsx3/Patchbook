@@ -1,10 +1,121 @@
 @page "/"
+@inject IEntryStore Store
 
-<PageTitle>Patchbook</PageTitle>
+<PageTitle>Your notebook · Patchbook</PageTitle>
 
-<main class="mx-auto max-w-3xl px-6 py-24">
-    <span class="text-sm font-bold tracking-widest text-brand">PATCHBOOK</span>
-    <h1 class="mt-6 font-display text-5xl tracking-tight">A fix worth keeping.</h1>
-    <p class="mt-5 text-lg text-muted">Your personal notebook for errors, fixes, and lessons learned.</p>
-    <p class="mt-10 rounded-2xl border border-line bg-white p-6">The notebook foundation is ready. Entry management comes next.</p>
-</main>
+<div class="mb-10 flex items-center justify-between border-b border-line pb-5 text-xs text-muted">
+    <span>Notebook <span class="mx-2 text-gray-300">/</span> All entries</span>
+    <span class="hidden items-center gap-1.5 sm:flex"><span class="size-1.5 rounded-full bg-brand"></span> A place for your aha moments</span>
+</div>
+<div class="flex flex-wrap items-end justify-between gap-5">
+    <div>
+        <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-brand">LESS SEARCHING. MORE BUILDING.</p>
+        <h1 class="font-display text-4xl tracking-tight sm:text-5xl">Your fixes, all in one place.</h1>
+        <p class="mt-4 max-w-xl text-sm leading-7 text-muted">Errors happen. Keep the solution, skip the rabbit hole next time.</p>
+    </div>
+    <a href="/entries/new" class="flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark"><Icon Name="plus" Class="size-4" /> New entry</a>
+</div>
+<div class="my-8 flex flex-wrap items-center gap-6 border-y border-line py-4 text-xs text-muted">
+    <span><strong class="mr-1.5 text-base font-semibold text-ink">@_allEntries.Count</strong> @(_allEntries.Count == 1 ? "saved fix" : "saved fixes")</span>
+    <span><strong class="mr-1.5 text-base font-semibold text-ink">@Tags.Count()</strong> tags</span>
+    <span class="ml-auto hidden items-center gap-2 sm:flex"><Icon Name="book" Class="size-4 text-brand" /> A little wiser with every entry</span>
+</div>
+<div class="flex flex-col gap-3 sm:flex-row">
+    <div class="relative flex-1">
+        <span class="pointer-events-none absolute left-4 top-3.5 text-muted"><Icon Name="search" Class="size-4" /></span>
+        <input aria-label="Search entries" @bind="_search" @bind:event="oninput" @bind:after="Load" placeholder="Search errors, fixes, snippets…" type="search" maxlength="250" class="w-full rounded-xl border border-line bg-white py-3 pl-11 pr-4 text-sm placeholder:text-muted" />
+    </div>
+    <select aria-label="Sort entries" @bind="_sort" @bind:after="Load" class="rounded-xl border border-line bg-white px-4 py-3 text-sm text-muted">
+        <option value="@EntrySort.RecentlyUpdated">Recently updated</option>
+        <option value="@EntrySort.OldestFirst">Oldest first</option>
+        <option value="@EntrySort.Title">Title A–Z</option>
+    </select>
+</div>
+@if (_allEntries.Count > 0)
+{
+    <div class="mt-4 flex flex-wrap items-center gap-2" aria-label="Filter by tag">
+        <button @onclick="ClearTag" aria-pressed="@(_tag.Length == 0 ? "true" : "false")" class="@TagClass(_tag.Length == 0)">All tags</button>
+        @foreach (var tag in Tags)
+        {
+            <button @onclick="() => SetTag(tag)" aria-pressed="@(_tag == tag ? "true" : "false")" class="@TagClass(_tag == tag)"><span class="opacity-60">#</span>@tag</button>
+        }
+        @if (_search.Length > 0 || _tag.Length > 0)
+        {
+            <button @onclick="ClearFilters" class="ml-1 rounded-lg px-2 py-1 text-xs text-muted underline underline-offset-4">Clear filters</button>
+        }
+    </div>
+}
+<div aria-live="polite" class="mb-4 mt-8 flex items-center gap-2 text-xs font-medium text-muted">
+    @(_search.Length > 0 || _tag.Length > 0 ? "SEARCH RESULTS" : "YOUR COLLECTION")
+    <span class="rounded-md bg-[#eeecf3] px-2 py-0.5 text-[10px]">@_entries.Count</span>
+</div>
+@if (_allEntries.Count == 0)
+{
+    <section class="flex min-h-80 flex-col items-center justify-center rounded-2xl border border-dashed border-[#d8d3e6] bg-white/60 px-6 py-12 text-center">
+        <span class="mb-6 flex size-16 -rotate-6 items-center justify-center rounded-2xl border border-violet-200 bg-violet-50 text-brand"><Icon Class="size-8" /></span>
+        <h2 class="font-display text-2xl">Start with your next “finally fixed it.”</h2>
+        <p class="mt-3 max-w-sm text-sm leading-7 text-muted">A cryptic error. A tiny typo. A command you always forget. Give the solution a home.</p>
+        <a href="/entries/new" class="mt-6 flex items-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-dark"><Icon Name="plus" Class="size-4" /> Save your first fix</a>
+        <button @onclick="LoadExamples" disabled="@_loadingExamples" class="mt-4 rounded-lg px-3 py-2 text-xs text-muted underline decoration-violet-300 underline-offset-4 disabled:opacity-50">Or load 3 example entries</button>
+    </section>
+}
+else if (_entries.Count == 0)
+{
+    <section class="rounded-2xl border border-dashed border-line py-16 text-center">
+        <Icon Name="search" Class="mx-auto mb-4 size-8 text-muted" />
+        <h2 class="text-xl font-semibold">No fixes found.</h2>
+        <p class="mt-2 text-sm text-muted">Try a different search or clear your filters.</p>
+        <button @onclick="ClearFilters" class="mt-5 rounded-lg bg-violet-100 px-4 py-2 text-sm font-medium text-brand">Clear filters</button>
+    </section>
+}
+else
+{
+    <div class="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
+        @foreach (var entry in _entries)
+        {
+            <EntryCard @key="entry.Id" Item="entry" />
+        }
+    </div>
+}
+<p class="mt-8 flex items-center justify-center gap-2 text-center text-[11px] leading-5 text-muted"><Icon Name="spark" Class="size-3.5" /> Future you says thanks.</p>
+
+@code {
+    private IReadOnlyList<Entry> _allEntries = [];
+    private IReadOnlyList<Entry> _entries = [];
+    private string _search = "";
+    private string _tag = "";
+    private EntrySort _sort;
+    private bool _loadingExamples;
+    private IEnumerable<string> Tags => _allEntries.SelectMany(entry => entry.Tags).Distinct().Order();
+
+    protected override Task OnInitializedAsync() => Load();
+
+    private async Task Load()
+    {
+        _allEntries = await Store.ListAsync();
+        _entries = await Store.ListAsync(new EntryQuery(_search, _tag, _sort));
+    }
+
+    private async Task SetTag(string tag) { _tag = tag; await Load(); }
+    private Task ClearTag() => SetTag("");
+    private async Task ClearFilters() { _search = ""; _tag = ""; await Load(); }
+
+    private static string TagClass(bool selected) =>
+        "max-w-full break-words rounded-lg border px-3 py-1.5 font-mono text-[11px] transition " +
+        (selected ? "border-violet-200 bg-violet-100 text-brand" : "border-line bg-white text-muted hover:border-violet-200 hover:text-brand");
+
+    private async Task LoadExamples()
+    {
+        if (_loadingExamples) return;
+        _loadingExamples = true;
+        if ((await Store.ListAsync()).Count == 0)
+        {
+            foreach (var draft in ExampleEntries.All)
+            {
+                await Store.CreateAsync(draft);
+            }
+        }
+        await Load();
+        _loadingExamples = false;
+    }
+}

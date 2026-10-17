@@ -1,0 +1,149 @@
+@page "/entries/new"
+@page "/entries/{Id:guid}/edit"
+@inject IEntryStore Store
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<PageTitle>@(Id.HasValue ? "Edit entry" : "New entry") · Patchbook</PageTitle>
+<NavigationLock ConfirmExternalNavigation="@(_context?.IsModified() == true && !_saved)" OnBeforeInternalNavigation="CheckNavigation" />
+
+<a href="/" class="mb-8 inline-flex items-center gap-2 rounded-md text-xs text-muted hover:text-brand"><Icon Name="back" Class="size-4" /> Back to notebook</a>
+@if (_missing)
+{
+    <h1 class="font-display text-4xl">This entry isn’t here.</h1>
+    <p class="mt-4 text-muted">It may have been deleted, or the app may have restarted.</p>
+}
+else if (_context is not null)
+{
+    <div class="mx-auto max-w-3xl">
+        <p class="mb-3 text-[10px] font-bold tracking-[0.2em] text-brand">A NOTE TO FUTURE YOU</p>
+        <h1 class="font-display text-4xl tracking-tight">@(Id.HasValue ? "Make a good fix better." : "Keep the aha moment.")</h1>
+        <p class="mb-8 mt-3 text-sm leading-7 text-muted">Enough context to remember the problem. Enough detail to solve it again.</p>
+        <EditForm EditContext="_context" OnValidSubmit="Save" FormName="entry" @key="_context">
+            <DataAnnotationsValidator />
+            <div class="space-y-6 rounded-2xl border border-line bg-white p-5 sm:p-8">
+                <div>
+                    <label for="title" class="@LabelClass">Title <span class="text-brand">*</span></label>
+                    <InputText id="title" @bind-Value="_draft.Title" maxlength="100" placeholder="e.g. Fix a missing environment variable" class="@FieldClass" autofocus />
+                    <ValidationMessage For="() => _draft.Title" />
+                </div>
+                <div>
+                    <label for="error" class="@LabelClass">The error or problem <span class="text-brand">*</span></label>
+                    <InputTextArea id="error" @bind-Value="_draft.Error" maxlength="8000" rows="3" placeholder="Paste the error, or describe what went wrong…" class="@FieldClass" />
+                    <ValidationMessage For="() => _draft.Error" />
+                </div>
+                <div>
+                    <label for="cause" class="@LabelClass">What caused it <span class="font-normal text-muted">· optional</span></label>
+                    <InputTextArea id="cause" @bind-Value="_draft.Cause" maxlength="4000" rows="2" placeholder="The detail that made everything click." class="@FieldClass" />
+                    <ValidationMessage For="() => _draft.Cause" />
+                </div>
+                <div>
+                    <label for="fix" class="@LabelClass">What fixed it <span class="text-brand">*</span></label>
+                    <InputTextArea id="fix" @bind-Value="_draft.Fix" maxlength="8000" rows="4" placeholder="Walk future you through the solution…" class="@FieldClass" />
+                    <ValidationMessage For="() => _draft.Fix" />
+                </div>
+                <div class="border-t border-line pt-6">
+                    <div class="mb-2 flex flex-wrap items-center justify-between gap-3">
+                        <label for="code" class="text-sm font-semibold">Code snippet <span class="font-normal text-muted">· optional</span></label>
+                        <InputSelect aria-label="Code language" @bind-Value="_draft.Language" class="rounded-lg border border-line bg-paper px-3 py-2 text-xs">
+                            <option value="text">Plain text</option>
+                            <option value="csharp">C#</option>
+                            <option value="bash">Shell</option>
+                            <option value="javascript">JavaScript</option>
+                            <option value="typescript">TypeScript</option>
+                            <option value="python">Python</option>
+                            <option value="elixir">Elixir</option>
+                            <option value="sql">SQL</option>
+                            <option value="json">JSON</option>
+                            <option value="html">HTML</option>
+                            <option value="css">CSS</option>
+                        </InputSelect>
+                    </div>
+                    <InputTextArea id="code" @bind-Value="_draft.Code" maxlength="12000" rows="6" spellcheck="false" placeholder="The command or code that saved the day." class="w-full rounded-xl border border-[#3c3a50] bg-[#252435] px-4 py-3 font-mono text-sm leading-7 text-violet-100 placeholder:text-[#aaa3be] [&.invalid]:border-red-400" />
+                    <ValidationMessage For="() => _draft.Code" />
+                </div>
+                <div>
+                    <label for="tags" class="@LabelClass">Tags <span class="font-normal text-muted">· optional</span></label>
+                    <InputText id="tags" @bind-Value="_draft.Tags" maxlength="250" placeholder="csharp, dotnet, configuration" class="@FieldClass" aria-describedby="tags-help" />
+                    <p id="tags-help" class="mt-2 text-xs text-muted">Separate with commas. Up to 8 tags, 24 characters each.</p>
+                    <ValidationMessage For="() => _draft.Tags" />
+                </div>
+                <div>
+                    <label for="reference" class="@LabelClass">Reference link <span class="font-normal text-muted">· optional</span></label>
+                    <InputText id="reference" @bind-Value="_draft.ReferenceUrl" maxlength="2048" placeholder="https://the-page-that-helped.com" class="@FieldClass" />
+                    <ValidationMessage For="() => _draft.ReferenceUrl" />
+                </div>
+                <p class="text-xs text-muted">* Required fields</p>
+                @if (_error.Length > 0)
+                {
+                    <p role="alert" class="rounded-lg bg-red-50 p-3 text-sm text-red-700">@_error</p>
+                }
+                <div class="flex flex-wrap items-center justify-end gap-3 border-t border-line pt-6">
+                    <a href="@(Id.HasValue ? $"/entries/{Id}" : "/")" class="rounded-xl border border-line px-5 py-3 text-sm text-muted hover:bg-paper">Cancel</a>
+                    <button type="submit" disabled="@_saving" class="flex items-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50"><Icon Name="check" Class="size-4" /> @(_saving ? "Saving…" : "Save entry")</button>
+                </div>
+            </div>
+        </EditForm>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid? Id { get; set; }
+    private EntryDraft _draft = new();
+    private EditContext? _context;
+    private Guid? _loadedId;
+    private bool _loaded, _missing, _saving, _saved;
+    private string _error = "";
+    private const string LabelClass = "mb-2 block text-sm font-semibold";
+    private const string FieldClass = "w-full rounded-xl border border-line bg-white px-4 py-3 text-sm leading-6 placeholder:text-muted [&.invalid]:border-red-400";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_loaded && _loadedId == Id) return;
+        _loaded = true;
+        _loadedId = Id;
+        _saved = false;
+        _missing = false;
+        _error = "";
+        _draft = new EntryDraft();
+        if (Id.HasValue)
+        {
+            var entry = await Store.GetAsync(Id.Value);
+            if (entry is null) { _missing = true; return; }
+            _draft = EntryDraft.From(entry);
+        }
+        _context = new EditContext(_draft);
+    }
+
+    private async Task Save()
+    {
+        if (_saving) return;
+        _saving = true;
+        try
+        {
+            var entry = Id.HasValue
+                ? await Store.UpdateAsync(Id.Value, _draft)
+                : await Store.CreateAsync(_draft);
+            if (entry is null)
+            {
+                _error = "This entry is no longer available. Copy your changes before leaving this page.";
+                return;
+            }
+            _saved = true;
+            Navigation.NavigateTo($"/entries/{entry.Id}");
+        }
+        catch (System.ComponentModel.DataAnnotations.ValidationException exception)
+        {
+            _error = exception.Message;
+        }
+        finally { _saving = false; }
+    }
+
+    private async Task CheckNavigation(LocationChangingContext context)
+    {
+        if (!_saved && _context?.IsModified() == true && !await JS.InvokeAsync<bool>("patchbook.confirmLeave"))
+        {
+            context.PreventNavigation();
+        }
+    }
+}

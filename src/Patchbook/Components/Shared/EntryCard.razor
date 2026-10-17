@@ -1,0 +1,30 @@
+<article class="group flex h-full min-w-0 flex-col rounded-2xl border border-line bg-white p-6 transition hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-lg hover:shadow-violet-100/50 motion-reduce:transform-none">
+    <div class="mb-5 flex items-center justify-between">
+        <span class="flex size-10 items-center justify-center rounded-xl bg-violet-50 text-brand"><Icon Name="code" /></span>
+        <span class="text-[11px] text-muted">@Item.UpdatedAt.ToLocalTime().ToString("MMM d, yyyy")</span>
+    </div>
+    <h2 class="text-lg font-semibold leading-7 tracking-tight">
+        <a href="@($"/entries/{Item.Id}")" class="break-words hover:text-brand">@Item.Title</a>
+    </h2>
+    <p class="mt-2 line-clamp-2 break-words text-sm leading-6 text-muted">@Item.Error</p>
+    @if (!string.IsNullOrWhiteSpace(Item.Code))
+    {
+        <pre class="mt-5 overflow-hidden rounded-lg bg-[#f7f7fa] px-3 py-2.5 font-mono text-[11px] leading-5 text-[#666078]" aria-label="Code preview"><code>@FirstLine</code></pre>
+    }
+    <div class="mt-auto flex flex-wrap items-center gap-2 pt-6">
+        @foreach (var tag in Item.Tags.Take(3))
+        {
+            <span class="max-w-full truncate rounded-md bg-[#f1eff7] px-2 py-1 font-mono text-[10px] text-[#6d6187]">@tag</span>
+        }
+        @if (Item.Tags.Length > 3)
+        {
+            <span class="text-xs text-muted">+@(Item.Tags.Length - 3)</span>
+        }
+        <a href="@($"/entries/{Item.Id}")" class="ml-auto rounded-md p-1 text-muted hover:text-brand" aria-label="@($"Read {Item.Title}")"><Icon Name="arrow" Class="size-4" /></a>
+    </div>
+</article>
+
+@code {
+    [Parameter, EditorRequired] public Entry Item { get; set; } = default!;
+    private string FirstLine => Item.Code.Split('\n').FirstOrDefault(line => !string.IsNullOrWhiteSpace(line)) ?? "";
+}

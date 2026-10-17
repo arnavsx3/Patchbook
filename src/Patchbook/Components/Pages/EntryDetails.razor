@@ -1,0 +1,87 @@
+@page "/entries/{Id:guid}"
+@inject IEntryStore Store
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<PageTitle>@(_entry?.Title ?? "Entry not found") · Patchbook</PageTitle>
+<a href="/" class="mb-8 inline-flex items-center gap-2 rounded-md text-xs text-muted hover:text-brand"><Icon Name="back" Class="size-4" /> Back to notebook</a>
+@if (_entry is null)
+{
+    <h1 class="font-display text-4xl">This entry isn’t here.</h1>
+    <p class="mt-4 text-sm text-muted">It may have been deleted, or the app may have restarted.</p>
+    <a href="/entries/new" class="mt-6 inline-block rounded-xl bg-brand px-5 py-3 text-sm font-semibold text-white">Save a new fix</a>
+}
+else
+{
+    <article class="mx-auto max-w-3xl">
+        <div class="mb-5 flex flex-wrap items-center justify-between gap-4">
+            <span class="flex items-center gap-2 text-[10px] font-bold tracking-[0.18em] text-brand"><Icon Name="book" Class="size-4" /> FROM YOUR NOTEBOOK</span>
+            <div class="flex items-center gap-2">
+                <a href="@($"/entries/{Id}/edit")" class="flex items-center gap-2 rounded-lg border border-line bg-white px-3 py-2 text-xs font-medium hover:border-violet-300"><Icon Name="edit" Class="size-3.5" /> Edit entry</a>
+                <button @onclick="ShowDelete" class="rounded-lg border border-line bg-white p-2 text-muted hover:border-red-200 hover:text-red-600" aria-label="Delete entry"><Icon Name="trash" Class="size-4" /></button>
+            </div>
+        </div>
+        <h1 class="break-words font-display text-4xl leading-tight tracking-tight sm:text-5xl">@_entry.Title</h1>
+        <p class="mb-5 mt-4 flex items-center gap-2 text-xs text-muted"><Icon Name="clock" Class="size-3.5" /> Updated @_entry.UpdatedAt.ToLocalTime().ToString("MMM d, yyyy · h:mm tt")</p>
+        <div class="mb-8 flex flex-wrap gap-2">
+            @foreach (var tag in _entry.Tags)
+            {
+                <span class="break-words rounded-lg bg-violet-100 px-3 py-1.5 font-mono text-xs text-brand">#@tag</span>
+            }
+        </div>
+        <div class="space-y-8 rounded-2xl border border-line bg-white p-5 sm:p-8">
+            <section>
+                <h2 class="mb-3 text-[10px] font-bold tracking-[0.18em] text-muted">THE PROBLEM</h2>
+                <div class="whitespace-pre-wrap break-words rounded-xl border-l-2 border-amber-400 bg-amber-50/60 p-4 text-sm leading-7">@_entry.Error</div>
+            </section>
+            @if (!string.IsNullOrWhiteSpace(_entry.Cause))
+            {
+                <section>
+                    <h2 class="mb-3 text-[10px] font-bold tracking-[0.18em] text-muted">WHY IT HAPPENED</h2>
+                    <p class="whitespace-pre-wrap break-words text-sm leading-7">@_entry.Cause</p>
+                </section>
+            }
+            <section>
+                <h2 class="mb-3 flex items-center gap-2 text-[10px] font-bold tracking-[0.18em] text-brand"><Icon Name="check" Class="size-4" /> THE FIX</h2>
+                <p class="whitespace-pre-wrap break-words text-sm leading-7">@_entry.Fix</p>
+            </section>
+            @if (!string.IsNullOrWhiteSpace(_entry.Code))
+            {
+                <section>
+                    <h2 class="mb-3 text-[10px] font-bold tracking-[0.18em] text-muted">THE USEFUL BIT</h2>
+                    <CodeBlock @key="_entry" Code="@_entry.Code" Language="@_entry.Language" />
+                </section>
+            }
+            @if (!string.IsNullOrEmpty(_entry.ReferenceUrl))
+            {
+                <section class="border-t border-line pt-6">
+                    <h2 class="mb-3 text-[10px] font-bold tracking-[0.18em] text-muted">THE PAGE THAT HELPED</h2>
+                    <a href="@_entry.ReferenceUrl" target="_blank" rel="noopener noreferrer" class="inline-flex max-w-full items-start gap-2 text-sm text-brand underline decoration-violet-200 underline-offset-4"><Icon Name="link" Class="mt-0.5 size-4 shrink-0" /><span class="break-all">@_entry.ReferenceUrl</span></a>
+                </section>
+            }
+        </div>
+        <p class="mt-6 text-center text-xs text-muted">One less rabbit hole to fall into.</p>
+    </article>
+    <dialog @ref="_deleteDialog" aria-labelledby="delete-title" aria-describedby="delete-description" class="fixed inset-0 m-auto w-[calc(100%-2rem)] max-w-md rounded-2xl border border-line bg-white p-7 text-ink shadow-xl backdrop:bg-ink/40">
+        <h2 id="delete-title" class="text-xl font-semibold">Delete this fix?</h2>
+        <p id="delete-description" class="mt-3 break-words text-sm leading-7 text-muted">“@_entry.Title” will be removed from your notebook. This can’t be undone.</p>
+        <div class="mt-6 flex justify-end gap-3">
+            <button @onclick="CloseDelete" autofocus class="rounded-xl border border-line px-4 py-2.5 text-sm">Keep entry</button>
+            <button @onclick="Delete" class="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700">Delete permanently</button>
+        </div>
+    </dialog>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    private Entry? _entry;
+    private ElementReference _deleteDialog;
+    protected override async Task OnParametersSetAsync() => _entry = await Store.GetAsync(Id);
+    private async Task ShowDelete() => await JS.InvokeVoidAsync("patchbook.showDialog", _deleteDialog);
+    private async Task CloseDelete() => await JS.InvokeVoidAsync("patchbook.closeDialog", _deleteDialog);
+    private async Task Delete()
+    {
+        await Store.DeleteAsync(Id);
+        Navigation.NavigateTo("/");
+    }
+}

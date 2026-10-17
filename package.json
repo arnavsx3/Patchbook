@@ -12,9 +12,11 @@
     "dev": "node scripts/dev.mjs",
     "build": "dotnet build --configuration Release",
     "test": "dotnet test",
-    "check": "dotnet format --verify-no-changes && dotnet build --configuration Release && dotnet test --configuration Release --no-build && npm audit --audit-level=high"
+    "check": "dotnet format --verify-no-changes && dotnet build --configuration Release && dotnet test --configuration Release --no-build && npm audit --audit-level=high",
+    "test:e2e": "dotnet build --configuration Release && playwright test"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.1",
     "@tailwindcss/postcss": "4.3.3",
     "postcss": "8.5.30",
     "tailwindcss": "4.3.3"

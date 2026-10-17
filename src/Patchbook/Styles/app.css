@@ -10,3 +10,17 @@
   --font-sans: "Inter", "Segoe UI", sans-serif;
   --font-display: "Georgia", serif;
 }
+
+@layer base {
+  :where(a, button, input, textarea, select):focus-visible {
+    @apply outline-2 outline-offset-4 outline-brand;
+  }
+
+  button:not(:disabled), select {
+    @apply cursor-pointer;
+  }
+
+  .validation-message {
+    @apply mt-1 text-xs text-red-600;
+  }
+}

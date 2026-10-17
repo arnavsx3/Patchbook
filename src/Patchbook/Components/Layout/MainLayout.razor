@@ -1,7 +1,42 @@
 @inherits LayoutComponentBase
 
-@Body
-
+<a href="#main-content" class="sr-only rounded-lg bg-brand p-3 text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50">Skip to content</a>
+<div class="min-h-screen md:grid md:grid-cols-[232px_minmax(0,1fr)]">
+    <aside class="hidden flex-col border-r border-line bg-[#f4f3f8] p-6 md:sticky md:top-0 md:flex md:h-screen">
+        <a href="/" class="flex items-center gap-3 text-xl font-bold tracking-tight" aria-label="Patchbook home">
+            <span class="flex size-10 items-center justify-center rounded-xl bg-brand text-white"><Icon /></span>
+            Patchbook<span class="text-brand">.</span>
+        </a>
+        <p class="mb-7 mt-12 text-[10px] font-bold tracking-[0.18em] text-muted">YOUR WORKSPACE</p>
+        <nav class="space-y-2" aria-label="Main navigation">
+            <NavLink href="/" Match="NavLinkMatch.All" class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-muted hover:bg-white [&.active]:bg-white [&.active]:text-brand [&.active]:shadow-sm">
+                <Icon /> All entries
+            </NavLink>
+            <NavLink href="/entries/new" class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-muted hover:bg-white [&.active]:bg-white [&.active]:text-brand">
+                <Icon Name="plus" /> New entry
+            </NavLink>
+        </nav>
+        <div class="mt-10 rounded-2xl border border-violet-200/60 bg-violet-100/50 p-4">
+            <Icon Name="spark" Class="mb-3 text-brand" />
+            <p class="text-sm font-semibold">A little help for future you.</p>
+            <p class="mt-2 text-xs leading-6 text-muted">The next time that error shows up, you’ll know exactly what to do.</p>
+        </div>
+        <div class="mt-auto pt-8">
+            <div class="flex items-center gap-2 text-xs font-medium"><span class="size-2 rounded-full bg-amber-500"></span> Session notebook</div>
+            <p class="mt-2 text-xs leading-5 text-muted">Entries clear when the app restarts. Permanent saving comes later.</p>
+        </div>
+    </aside>
+    <div class="min-w-0">
+        <header class="flex items-center justify-between border-b border-line bg-white/70 px-5 py-4 md:hidden">
+            <a href="/" class="flex items-center gap-2 font-bold"><span class="rounded-lg bg-brand p-2 text-white"><Icon /></span> Patchbook.</a>
+            <a href="/entries/new" class="rounded-lg bg-brand p-2 text-white" aria-label="New entry"><Icon Name="plus" /></a>
+        </header>
+        <main id="main-content" class="mx-auto max-w-6xl px-5 pb-10 pt-8 sm:px-9 md:pt-10 lg:px-12">
+            @Body
+            <p class="mt-12 text-center text-[11px] text-muted md:hidden">Session notebook · Entries clear when the app restarts.</p>
+        </main>
+    </div>
+</div>
 <div id="blazor-error-ui" class="fixed inset-x-0 bottom-0 z-50 hidden border-t border-amber-200 bg-amber-50 p-4 text-center text-sm" data-nosnippet>
     Something went wrong. <a href="" class="font-semibold underline">Reload Patchbook</a> to continue.
 </div>
