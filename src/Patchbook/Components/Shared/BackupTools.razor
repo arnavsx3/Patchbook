@@ -1,0 +1,12 @@
+<div class="mb-5 flex flex-wrap items-center justify-end gap-2">
+    <span class="mr-auto text-xs text-muted">Back up your fixes · JSON, up to 2 MB</span>
+    <button @onclick="Export" disabled="@_busy" class="rounded-lg border border-line bg-white px-3 py-2 text-xs font-medium hover:border-violet-300 disabled:opacity-50">Export backup</button>
+    <label class="rounded-lg border border-line bg-white px-3 py-2 text-xs font-medium hover:border-violet-300 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-brand">
+        Import backup
+        <InputFile @key="_inputKey" OnChange="Import" accept=".json,application/json" aria-label="Import backup" disabled="@_busy" class="sr-only" />
+    </label>
+</div>
+@if (_message.Length > 0)
+{
+    <p role="status" class="mb-5 rounded-xl border border-line bg-white p-3 text-sm text-muted">@_message</p>
+}

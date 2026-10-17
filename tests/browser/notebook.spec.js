@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { readFile } from "node:fs/promises";
 
 let browserErrors;
 test.beforeEach(async ({ page }) => {
@@ -152,4 +153,42 @@ test("pins entries to the top and keeps pins after editing", async ({ page }) =>
   await expect(page.locator("article h2").first()).toHaveText("ZZZ pinned fix");
   await page.getByRole("button", { name: "Unpin ZZZ pinned fix", exact: true }).click();
   await expect(page.getByRole("button", { name: "Pin ZZZ pinned fix", exact: true })).toHaveAttribute("aria-pressed", "false");
+});
+
+
+test("exports a real backup and restores a deleted pinned entry without duplicates", async ({ page }) => {
+  await createEntry(page, "Backup browser fix", { code: "  preserve this\n" });
+  const originalUrl = page.url();
+  await page.getByRole("button", { name: "Pin Backup browser fix", exact: true }).click();
+  await page.getByRole("link", { name: "Back to notebook" }).click();
+  const pendingDownload = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export backup", exact: true }).click();
+  const download = await pendingDownload;
+  const bytes = await readFile(await download.path());
+  const backup = JSON.parse(bytes.toString());
+  expect(backup.format).toBe("patchbook");
+  expect(backup.entries.find(entry => entry.title === "Backup browser fix").isPinned).toBe(true);
+  await page.goto(originalUrl);
+  await page.getByRole("button", { name: "Delete entry", exact: true }).click();
+  await page.getByRole("button", { name: "Delete permanently" }).click();
+  await page.getByLabel("Import backup", { exact: true }).setInputFiles({ name: "backup.json", mimeType: "application/json", buffer: bytes });
+  await expect(page.getByRole("status")).toContainText("Imported 1 entries.");
+  await page.getByLabel("Import backup", { exact: true }).setInputFiles({ name: "backup.json", mimeType: "application/json", buffer: bytes });
+  await expect(page.getByRole("status")).toContainText("Imported 0 entries.");
+  await page.goto(originalUrl);
+  await expect(page.getByRole("heading", { name: "Backup browser fix", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Unpin Backup browser fix", exact: true })).toBeVisible();
+  await expect(page.locator("pre code")).toHaveText("  preserve this\n");
+});
+
+test("invalid and oversized backup files keep the notebook intact", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("article").first()).toBeVisible();
+  const count = await page.locator("article").count();
+  await page.getByLabel("Import backup", { exact: true }).setInputFiles({ name: "broken.json", mimeType: "application/json", buffer: Buffer.from("not JSON") });
+  await expect(page.getByRole("status")).toContainText("Choose a valid Patchbook JSON export.");
+  await expect(page.locator("article")).toHaveCount(count);
+  await page.getByLabel("Import backup", { exact: true }).setInputFiles({ name: "large.json", mimeType: "application/json", buffer: Buffer.alloc(2 * 1024 * 1024 + 1) });
+  await expect(page.getByRole("status")).toContainText("2 MB or smaller");
+  await expect(page.locator("article")).toHaveCount(count);
 });
