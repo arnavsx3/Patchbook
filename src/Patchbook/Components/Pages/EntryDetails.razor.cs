@@ -14,6 +14,7 @@ public partial class EntryDetails
     [Parameter] public Guid Id { get; set; }
     private Entry? _entry;
     private ElementReference _deleteDialog;
+    private void OnPinChanged(Entry entry) => _entry = entry;
     protected override async Task OnParametersSetAsync() => _entry = await Store.GetAsync(Id);
     private async Task ShowDelete() => await JS.InvokeVoidAsync("patchbook.showDialog", _deleteDialog);
     private async Task CloseDelete() => await JS.InvokeVoidAsync("patchbook.closeDialog", _deleteDialog);

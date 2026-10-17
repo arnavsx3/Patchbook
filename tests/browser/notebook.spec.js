@@ -136,3 +136,20 @@ test("handles missing entries and unknown routes", async ({ page }) => {
   await page.goto("/missing-page");
   await expect(page.getByRole("heading", { name: "A page out of place." })).toBeVisible();
 });
+
+test("pins entries to the top and keeps pins after editing", async ({ page }) => {
+  await createEntry(page, "ZZZ pinned fix");
+  await page.getByRole("button", { name: "Pin ZZZ pinned fix", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Unpin ZZZ pinned fix", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("link", { name: "Edit entry" }).click();
+  await page.getByLabel("What fixed it", { exact: false }).fill("Updated pinned solution");
+  await page.getByRole("button", { name: "Save entry", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Unpin ZZZ pinned fix", exact: true })).toBeVisible();
+  await page.getByRole("link", { name: "Back to notebook" }).click();
+  await page.getByLabel("Sort entries").selectOption("Title");
+  await expect(page.locator("article h2").first()).toHaveText("ZZZ pinned fix");
+  await page.reload();
+  await expect(page.locator("article h2").first()).toHaveText("ZZZ pinned fix");
+  await page.getByRole("button", { name: "Unpin ZZZ pinned fix", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Pin ZZZ pinned fix", exact: true })).toHaveAttribute("aria-pressed", "false");
+});

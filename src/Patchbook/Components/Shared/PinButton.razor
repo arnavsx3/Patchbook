@@ -1,0 +1,3 @@
+<button type="button" @onclick="Toggle" disabled="@_busy" aria-label="@($"{(Item.IsPinned ? "Unpin" : "Pin")} {Item.Title}")" aria-pressed="@(Item.IsPinned ? "true" : "false")" title="@(Item.IsPinned ? "Unpin entry" : "Pin entry")" class="@(Item.IsPinned ? "rounded-lg bg-violet-100 p-2 text-brand hover:bg-violet-200 disabled:opacity-50" : "rounded-lg p-2 text-muted hover:bg-violet-50 hover:text-brand disabled:opacity-50")">
+    <Icon Name="pin" Class="size-4" />
+</button>

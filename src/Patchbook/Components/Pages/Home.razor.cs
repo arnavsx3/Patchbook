@@ -27,6 +27,7 @@ public partial class Home
 
     private async Task SetTag(string tag) { _tag = tag; await Load(); }
     private Task ClearTag() => SetTag("");
+    private Task OnPinChanged(Entry _) => Load();
     private async Task ClearFilters() { _search = ""; _tag = ""; await Load(); }
 
     private static string TagClass(bool selected) =>

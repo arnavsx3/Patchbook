@@ -72,7 +72,7 @@ else
     <div class="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
         @foreach (var entry in _entries)
         {
-            <EntryCard @key="entry.Id" Item="entry" />
+            <EntryCard @key="entry.Id" Item="entry" OnPinChanged="OnPinChanged" />
         }
     </div>
 }

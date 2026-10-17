@@ -14,6 +14,7 @@ else
         <div class="mb-5 flex flex-wrap items-center justify-between gap-4">
             <span class="flex items-center gap-2 text-[10px] font-bold tracking-[0.18em] text-brand"><Icon Name="book" Class="size-4" /> FROM YOUR NOTEBOOK</span>
             <div class="flex items-center gap-2">
+                <PinButton Item="_entry" OnChanged="OnPinChanged" />
                 <a href="@($"/entries/{Id}/edit")" class="flex items-center gap-2 rounded-lg border border-line bg-white px-3 py-2 text-xs font-medium hover:border-violet-300"><Icon Name="edit" Class="size-3.5" /> Edit entry</a>
                 <button @onclick="ShowDelete" class="rounded-lg border border-line bg-white p-2 text-muted hover:border-red-200 hover:text-red-600" aria-label="Delete entry"><Icon Name="trash" Class="size-4" /></button>
             </div>
